@@ -1,3 +1,21 @@
+eudev (220:3.2-4.0nosystemd1) nosystemd; urgency=medium
+
+  * antiX stretch build with 3.2.4 gitgub version
+
+ -- anticapitalista <antix@operamail.com>  Wed, 27 Sep 2017 19:10:46 +0300
+
+eudev (220:3.2-1.0nosystemd1) nosystemd; urgency=medium
+
+  * jessie build 
+
+ -- anticapitalista <antix@operamail.com>  Fri, 03 Jun 2016 09:48:01 -0400
+
+eudev (220:3.1.2-3.0nosystemd5) nosystemd; urgency=medium
+
+  * jessie build
+
+ -- anticapitalista <antiX@operamail.com>  Tue, 10 May 2016 17:46:41 -0400
+
 eudev (220:3.1.2-3.0nosystemd4) nosystemd; urgency=medium
 
   * jessie build

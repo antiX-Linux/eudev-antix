@@ -11,3 +11,9 @@ more-cd-aliases.patch
 
 ## local specific patches
 Always-install-non-arch-specific-files-in-lib-udev.patch
+hwdb_2017
+rules_antix
+src
+src2
+src3
+src4

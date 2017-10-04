@@ -1,0 +1,61 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ eudev (220:3.2-1.0nosystemd8) nosystemd; urgency=medium
+ .
+   * src4
+Author: anticapitalista <antix@operamail.com>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2017-09-27
+
+--- eudev-3.2.orig/src/shared/missing.h
++++ eudev-3.2/src/shared/missing.h
+@@ -47,8 +47,10 @@
+ #    define __NR_getrandom 318
+ #  elif defined(__i386__)
+ #    define __NR_getrandom 355
+-#  elif defined(__arm__) || defined(__aarch64__)
++#  elif defined(__arm__)
+ #    define __NR_getrandom 384
++#  elif defined(__aarch64__)
++#    define __NR_getrandom 278
+ #  elif defined(__ia64__)
+ #    define __NR_getrandom 1339
+ #  elif defined(__m68k__)
+@@ -169,3 +171,11 @@ static inline int name_to_handle_at(int
+     (char *)memcpy(__new, __old, __len); \
+   })
+ #endif
++
++#ifndef BTN_TRIGGER_HAPPY
++#define BTN_TRIGGER_HAPPY 0x2c0
++#endif
++
++#ifndef INPUT_PROP_MAX
++#define INPUT_PROP_MAX 0x1f
++#endif
+--- eudev-3.2.orig/src/udev/udev-builtin-input_id.c
++++ eudev-3.2/src/udev/udev-builtin-input_id.c
+@@ -32,6 +32,7 @@
+ 
+ #include "udev.h"
+ #include "util.h"
++#include "missing.h"
+ 
+ /* we must use this kernel-compatible implementation */
+ #define BITS_PER_LONG (sizeof(unsigned long) * 8)

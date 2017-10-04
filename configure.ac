@@ -1,6 +1,5 @@
-
 AC_PREREQ([2.68])
-AC_INIT([eudev],[3.1.2],[https://github.com/gentoo/eudev/issues])
+AC_INIT([eudev],[3.2],[https://github.com/gentoo/eudev/issues])
 AC_SUBST(UDEV_VERSION, 220)
 AC_CONFIG_SRCDIR([src/udev/udevd.c])
 
@@ -11,7 +10,7 @@ AC_PREFIX_DEFAULT([/usr])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([foreign 1.13])
+AM_INIT_AUTOMAKE([foreign 1.11])
 AM_SILENT_RULES([yes])
 
 LT_PREREQ(2.2)
@@ -36,7 +35,6 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 AC_PATH_PROG([M4], [m4])
-AC_PATH_PROG([XSLTPROC], [xsltproc])
 
 # Checks for header files.
 AC_CHECK_HEADERS(
@@ -49,15 +47,15 @@ AC_CHECK_HEADERS(
 )
 
 AC_CHECK_HEADERS(
-	[mtd/mtd-user.h],
-	[],
-	[AC_MSG_ERROR([*** KERNEL header not found])]
+        [mtd/mtd-user.h],
+        [],
+        [AC_MSG_ERROR([*** KERNEL header not found])]
 )
 
 AC_CHECK_HEADERS(
-	[linux/btrfs.h],
-	[],
-	[AC_MSG_WARN([*** KERNEL header not found])]
+        [linux/btrfs.h],
+        [],
+        [AC_MSG_WARN([*** KERNEL header not found])]
 )
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -66,13 +64,17 @@ AC_C_INLINE
 AC_TYPE_MODE_T
 AC_TYPE_PID_T
 AC_CHECK_MEMBERS([struct stat.st_rdev])
-AC_CHECK_DECLS([getrandom, gettid, name_to_handle_at, accept4, mkostemp, strndupa], [], [], [[#include <sys/types.h>
-#include <unistd.h>
+AC_CHECK_DECLS([getrandom, gettid, name_to_handle_at, accept4, mkostemp, ppoll, strndupa], [], [],
+[[#include <fcntl.h>
+#include <linux/random.h>
+#include <poll.h>
+#include <signal.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/mount.h>
-#include <fcntl.h>
 #include <sys/socket.h>
-#include <linux/random.h>]])
+#include <sys/types.h>
+#include <unistd.h>]])
 
 AC_CHECK_SIZEOF(pid_t)
 AC_CHECK_SIZEOF(uid_t)
@@ -269,10 +271,25 @@ AC_ARG_ENABLE([hwdb], AS_HELP_STRING([--enable-hwdb],[install hwdb.d files]),[],
 AM_CONDITIONAL(ENABLE_HWDB, [test "x$enable_hwdb" = "xyes"])
 
 # ------------------------------------------------------------------------------
+# rule-generator - persistent network and optical device rule generator
+# ------------------------------------------------------------------------------
+AC_ARG_ENABLE([rule-generator],
+        AS_HELP_STRING([--enable-rule-generator], [enable legacy persistent network, cdrom support]),
+        [], [enable_rule_generator=no])
+
+if test "x${enable_rule_generator}" != xno; then
+        AC_DEFINE([ENABLE_RULE_GENERATOR], [1], [Define if we are enabling rule generator])
+fi
+
+AM_CONDITIONAL([ENABLE_RULE_GENERATOR], [test "x$enable_rule_generator" = xyes])
+
+# ------------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile
                  hwdb/Makefile
                  man/Makefile
+                 rule_generator/Makefile
+                 rule_generator/write_net_rules
                  rules/Makefile
                  src/Makefile
                  src/ata_id/Makefile

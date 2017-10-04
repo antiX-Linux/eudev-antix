@@ -47,8 +47,10 @@
 #    define __NR_getrandom 318
 #  elif defined(__i386__)
 #    define __NR_getrandom 355
-#  elif defined(__arm__) || defined(__aarch64__)
+#  elif defined(__arm__)
 #    define __NR_getrandom 384
+#  elif defined(__aarch64__)
+#    define __NR_getrandom 278
 #  elif defined(__ia64__)
 #    define __NR_getrandom 1339
 #  elif defined(__m68k__)
@@ -168,4 +170,12 @@ static inline int name_to_handle_at(int fd, const char *name, struct file_handle
     __new[__len] = '\0'; \
     (char *)memcpy(__new, __old, __len); \
   })
+#endif
+
+#ifndef BTN_TRIGGER_HAPPY
+#define BTN_TRIGGER_HAPPY 0x2c0
+#endif
+
+#ifndef INPUT_PROP_MAX
+#define INPUT_PROP_MAX 0x1f
 #endif

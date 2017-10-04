@@ -1,0 +1,305 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ eudev (220:3.2-1.0nosystemd4) nosystemd; urgency=medium
+ .
+   * again
+Author: anticapitalista <antix@operamail.com>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2017-09-26
+
+--- eudev-3.2.orig/rules/50-udev-default.rules
++++ eudev-3.2/rules/50-udev-default.rules
+@@ -24,11 +24,8 @@ SUBSYSTEM=="tty", KERNEL=="ttysclp[0-9]*
+ SUBSYSTEM=="tty", KERNEL=="3270/tty[0-9]*", GROUP="tty", MODE="0620"
+ SUBSYSTEM=="vc", KERNEL=="vcs*|vcsa*", GROUP="tty"
+ KERNEL=="tty[A-Z]*[0-9]|pppox[0-9]*|ircomm[0-9]*|noz[0-9]*|rfcomm[0-9]*", GROUP="dialout"
+-KERNEL=="mISDNtimer", GROUP="dialout"
+-KERNEL=="mwave", GROUP="dialout"
+ 
+ SUBSYSTEM=="mem", KERNEL=="mem|kmem|port", GROUP="kmem", MODE="0640"
+-KERNEL=="nvram", GROUP="kmem", MODE="0640"
+ 
+ SUBSYSTEM=="input", GROUP="input"
+ SUBSYSTEM=="input", KERNEL=="js[0-9]*", MODE="0664"
+@@ -37,6 +34,8 @@ SUBSYSTEM=="video4linux", GROUP="video"
+ SUBSYSTEM=="graphics", GROUP="video"
+ SUBSYSTEM=="drm", GROUP="video"
+ SUBSYSTEM=="dvb", GROUP="video"
++SUBSYSTEM=="media", GROUP="video"
++SUBSYSTEM=="cec", GROUP="video"
+ 
+ SUBSYSTEM=="sound", GROUP="audio", \
+   OPTIONS+="static_node=snd/seq", OPTIONS+="static_node=snd/timer"
+@@ -60,7 +59,7 @@ SUBSYSTEM=="block", KERNEL=="sr[0-9]*",
+ SUBSYSTEM=="scsi_generic", SUBSYSTEMS=="scsi", ATTRS{type}=="4|5", GROUP="cdrom"
+ KERNEL=="sch[0-9]*", GROUP="cdrom"
+ KERNEL=="pktcdvd[0-9]*", GROUP="cdrom"
+-KERNEL=="pktcdvd", GROUP="cdrom", MODE="0644"
++KERNEL=="pktcdvd", GROUP="cdrom"
+ 
+ SUBSYSTEM=="scsi_generic|scsi_tape", SUBSYSTEMS=="scsi", ATTRS{type}=="1|8", GROUP="tape"
+ SUBSYSTEM=="scsi_generic", SUBSYSTEMS=="scsi", ATTRS{type}=="0", GROUP="disk"
+@@ -77,13 +76,4 @@ KERNEL=="tun", MODE="0666", OPTIONS+="st
+ 
+ KERNEL=="fuse", MODE="0666", OPTIONS+="static_node=fuse"
+ 
+-# not the ideal group, but backwards compatibility with previous Debian versions
+-KERNEL=="lirc[0-9]*", GROUP="video"
+-
+-KERNEL=="legousbtower*", MODE="0666"
+-KERNEL=="sonypi", MODE="0666"
+-KERNEL=="mmtimer", MODE="0644"
+-KERNEL=="sgi_*", MODE="0666"
+-KERNEL=="z90crypt", MODE="0666"
+-
+ LABEL="default_end"
+--- eudev-3.2.orig/rules/60-block.rules
++++ eudev-3.2/rules/60-block.rules
+@@ -3,13 +3,9 @@
+ # enable in-kernel media-presence polling
+ ACTION=="add", SUBSYSTEM=="module", KERNEL=="block", ATTR{parameters/events_dfl_poll_msecs}=="0", \
+   ATTR{parameters/events_dfl_poll_msecs}="2000"
+-ACTION=="add", ATTR{removable}=="1", ATTR{events_poll_msecs}=="-1", ATTR{events_poll_msecs}="2000"
+ 
+ # forward scsi device event to corresponding block device
+ ACTION=="change", SUBSYSTEM=="scsi", ENV{DEVTYPE}=="scsi_device", TEST=="block", ATTR{block/*/uevent}="change"
+ 
+ # watch metadata changes, caused by tools closing the device node which was opened for writing
+-ACTION!="remove", SUBSYSTEM=="block", KERNEL=="loop*|nvme*|sd*|vd*|xvd*", OPTIONS+="watch"
+-
+-# set noop on solid state drives
+-SUBSYSTEM=="block", ACTION=="add", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="noop"
++ACTION!="remove", SUBSYSTEM=="block", KERNEL=="loop*|nvme*|sd*|vd*|xvd*|pmem*|mmcblk*", OPTIONS+="watch"
+--- eudev-3.2.orig/rules/60-cdrom_id.rules
++++ eudev-3.2/rules/60-cdrom_id.rules
+@@ -2,25 +2,28 @@
+ 
+ ACTION=="remove", GOTO="cdrom_end"
+ SUBSYSTEM!="block", GOTO="cdrom_end"
+-KERNEL!="sr[0-9]*|xvd*", GOTO="cdrom_end"
++KERNEL!="sr[0-9]*|vdisk*|xvd*", GOTO="cdrom_end"
+ ENV{DEVTYPE}!="disk", GOTO="cdrom_end"
+ 
+ # unconditionally tag device as CDROM
+ KERNEL=="sr[0-9]*", ENV{ID_CDROM}="1"
+ 
++# stop automatically any mount units bound to the device if the media eject
++# button is pressed.
++ENV{ID_CDROM}=="1", ENV{SYSTEMD_MOUNT_DEVICE_BOUND}="1"
++
+ # media eject button pressed
+-ENV{DISK_EJECT_REQUEST}=="?*", RUN+="/usr/bin/eject $devnode", GOTO="cdrom_end"
++ENV{DISK_EJECT_REQUEST}=="?*", RUN+="cdrom_id --eject-media $devnode", GOTO="cdrom_end"
+ 
+ # import device and media properties and lock tray to
+ # enable the receiving of media eject button events
+ IMPORT{program}="cdrom_id --lock-media $devnode"
+ 
+-# These rules will create symlinks for the CD/DVD reader, to help old
+-# programs which are unable to automatically discover the devices.
+-# The results are undefined for system with multiple CD/DVD devices.
+-ENV{ID_CDROM}=="?*",        SYMLINK+="cdrom", OPTIONS+="link_priority=-100"
+-ENV{ID_CDROM_CD_RW}=="?*",  SYMLINK+="cdrw",  OPTIONS+="link_priority=-100"
+-ENV{ID_CDROM_DVD}=="?*",    SYMLINK+="dvd",   OPTIONS+="link_priority=-100"
+-ENV{ID_CDROM_DVD_RW}=="?*", SYMLINK+="dvdrw", OPTIONS+="link_priority=-100"
++# ejecting a CD does not remove the device node, so mark the systemd device
++# unit as inactive while there is no medium; this automatically cleans up of
++# stale mounts after ejecting
++ENV{DISK_MEDIA_CHANGE}=="?*", ENV{ID_CDROM_MEDIA}!="?*", ENV{SYSTEMD_READY}="0"
++
++KERNEL=="sr0", SYMLINK+="cdrom", OPTIONS+="link_priority=-100"
+ 
+ LABEL="cdrom_end"
+--- eudev-3.2.orig/rules/60-drm.rules
++++ eudev-3.2/rules/60-drm.rules
+@@ -1,3 +1,8 @@
+ # do not edit this file, it will be overwritten on update
+ 
+ ACTION!="remove", SUBSYSTEM=="drm", SUBSYSTEMS=="pci|usb|platform", IMPORT{builtin}="path_id"
++
++# by-path
++ENV{ID_PATH}=="?*", KERNEL=="card*", SYMLINK+="dri/by-path/$env{ID_PATH}-card"
++ENV{ID_PATH}=="?*", KERNEL=="controlD*", SYMLINK+="dri/by-path/$env{ID_PATH}-control"
++ENV{ID_PATH}=="?*", KERNEL=="renderD*", SYMLINK+="dri/by-path/$env{ID_PATH}-render"
+--- eudev-3.2.orig/rules/60-evdev.rules
++++ eudev-3.2/rules/60-evdev.rules
+@@ -8,10 +8,14 @@ IMPORT{builtin}="hwdb --subsystem=input
+   RUN{builtin}+="keyboard", GOTO="evdev_end"
+ 
+ # AT keyboard matching by the machine's DMI data
+-ENV{ID_INPUT_KEY}=="?*", DRIVERS=="atkbd", \
++DRIVERS=="atkbd", \
+   IMPORT{builtin}="hwdb 'evdev:atkbd:$attr{[dmi/id]modalias}'", \
+   RUN{builtin}+="keyboard", GOTO="evdev_end"
+ 
++# device matching the input device name + properties + the machine's DMI data
++KERNELS=="input*", IMPORT{builtin}="hwdb 'evdev:name:$attr{name}:phys:$attr{phys}:ev:$attr{capabilities/ev}:$attr{[dmi/id]modalias}'", \
++  RUN{builtin}+="keyboard", GOTO="evdev_end"
++
+ # device matching the input device name and the machine's DMI data
+ KERNELS=="input*", IMPORT{builtin}="hwdb 'evdev:name:$attr{name}:$attr{[dmi/id]modalias}'", \
+   RUN{builtin}+="keyboard", GOTO="evdev_end"
+--- eudev-3.2.orig/rules/60-persistent-input.rules
++++ eudev-3.2/rules/60-persistent-input.rules
+@@ -2,7 +2,11 @@
+ 
+ ACTION=="remove", GOTO="persistent_input_end"
+ SUBSYSTEM!="input", GOTO="persistent_input_end"
+-SUBSYSTEMS=="bluetooth", GOTO="persistent_input_end"
++SUBSYSTEMS=="bluetooth", ENV{ID_BUS}="bluetooth", GOTO="persistent_input_end"
++# Bluetooth devices don't always have the bluetooth subsystem
++ATTRS{id/bustype}=="0005", ENV{ID_BUS}="bluetooth", GOTO="persistent_input_end"
++SUBSYSTEMS=="rmi4", ENV{ID_BUS}="rmi", GOTO="persistent_input_end"
++SUBSYSTEMS=="serio", ENV{ID_BUS}="i8042", GOTO="persistent_input_end"
+ 
+ SUBSYSTEMS=="usb", ENV{ID_BUS}=="", IMPORT{builtin}="usb_id"
+ 
+--- eudev-3.2.orig/rules/60-persistent-storage-tape.rules
++++ eudev-3.2/rules/60-persistent-storage-tape.rules
+@@ -3,6 +3,7 @@
+ # persistent storage links: /dev/tape/{by-id,by-path}
+ 
+ ACTION=="remove", GOTO="persistent_storage_tape_end"
++ENV{UDEV_DISABLE_PERSISTENT_STORAGE_RULES_FLAG}=="1", GOTO="persistent_storage_tape_end"
+ 
+ # type 8 devices are "Medium Changers"
+ SUBSYSTEM=="scsi_generic", SUBSYSTEMS=="scsi", ATTRS{type}=="8", IMPORT{program}="scsi_id --sg-version=3 --export --whitelisted -d $devnode", \
+--- eudev-3.2.orig/rules/60-persistent-storage.rules
++++ eudev-3.2/rules/60-persistent-storage.rules
+@@ -4,9 +4,10 @@
+ # scheme based on "Linux persistent device names", 2004, Hannes Reinecke <hare@suse.de>
+ 
+ ACTION=="remove", GOTO="persistent_storage_end"
++ENV{UDEV_DISABLE_PERSISTENT_STORAGE_RULES_FLAG}=="1", GOTO="persistent_storage_end"
+ 
+ SUBSYSTEM!="block", GOTO="persistent_storage_end"
+-KERNEL!="loop*|mmcblk*[0-9]|msblk*[0-9]|mspblk*[0-9]|nvme*|sd*|sr*|vd*|xvd*|bcache*|cciss*|dasd*|ubd*", GOTO="persistent_storage_end"
++KERNEL!="loop*|mmcblk*[0-9]|msblk*[0-9]|mspblk*[0-9]|nvme*|sd*|sr*|vd*|xvd*|bcache*|cciss*|dasd*|ubd*|scm*|pmem*|nbd*", GOTO="persistent_storage_end"
+ 
+ # ignore partitions that span the entire disk
+ TEST=="whole_disk", GOTO="persistent_storage_end"
+@@ -18,6 +19,13 @@ ENV{DEVTYPE}=="partition", IMPORT{parent
+ KERNEL=="nvme*[0-9]n*[0-9]", ATTR{wwid}=="?*", SYMLINK+="disk/by-id/nvme-$attr{wwid}"
+ KERNEL=="nvme*[0-9]n*[0-9]p*[0-9]", ENV{DEVTYPE}=="partition", ATTRS{wwid}=="?*", SYMLINK+="disk/by-id/nvme-$attr{wwid}-part%n"
+ 
++KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTRS{serial}=="?*", ENV{ID_SERIAL_SHORT}="$attr{serial}"
++KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTRS{wwid}=="?*", ENV{ID_WWN}="$attr{wwid}"
++KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTRS{model}=="?*", ENV{ID_SERIAL_SHORT}=="?*", ENV{ID_SERIAL}="$attr{model}_$env{ID_SERIAL_SHORT}", SYMLINK+="disk/by-id/nvme-$env{ID_SERIAL}"
++
++KERNEL=="nvme*[0-9]n*[0-9]p*[0-9]", ENV{DEVTYPE}=="partition", ATTRS{serial}=="?*", ENV{ID_SERIAL_SHORT}="$attr{serial}"
++KERNEL=="nvme*[0-9]n*[0-9]p*[0-9]", ENV{DEVTYPE}=="partition", ATTRS{model}=="?*", ENV{ID_SERIAL_SHORT}=="?*", ENV{ID_SERIAL}="$attr{model}_$env{ID_SERIAL_SHORT}", SYMLINK+="disk/by-id/nvme-$env{ID_SERIAL}-part%n"
++
+ # virtio-blk
+ KERNEL=="vd*[!0-9]", ATTRS{serial}=="?*", ENV{ID_SERIAL}="$attr{serial}", SYMLINK+="disk/by-id/virtio-$env{ID_SERIAL}"
+ KERNEL=="vd*[0-9]", ATTRS{serial}=="?*", ENV{ID_SERIAL}="$attr{serial}", SYMLINK+="disk/by-id/virtio-$env{ID_SERIAL}-part%n"
+@@ -47,7 +55,7 @@ KERNEL=="sd*[0-9]", ATTRS{ieee1394_id}==
+ # MMC
+ KERNEL=="mmcblk[0-9]", SUBSYSTEMS=="mmc", ATTRS{name}=="?*", ATTRS{serial}=="?*", \
+   ENV{ID_NAME}="$attr{name}", ENV{ID_SERIAL}="$attr{serial}", SYMLINK+="disk/by-id/mmc-$env{ID_NAME}_$env{ID_SERIAL}"
+-KERNEL=="mmcblk[0-9]p[0-9]", ENV{ID_NAME}=="?*", ENV{ID_SERIAL}=="?*", SYMLINK+="disk/by-id/mmc-$env{ID_NAME}_$env{ID_SERIAL}-part%n"
++KERNEL=="mmcblk[0-9]p[0-9]*", ENV{ID_NAME}=="?*", ENV{ID_SERIAL}=="?*", SYMLINK+="disk/by-id/mmc-$env{ID_NAME}_$env{ID_SERIAL}-part%n"
+ 
+ # Memstick
+ KERNEL=="msblk[0-9]|mspblk[0-9]", SUBSYSTEMS=="memstick", ATTRS{name}=="?*", ATTRS{serial}=="?*", \
+@@ -56,9 +64,14 @@ KERNEL=="msblk[0-9]p[0-9]|mspblk[0-9]p[0
+ 
+ # by-path
+ ENV{DEVTYPE}=="disk", DEVPATH!="*/virtual/*", IMPORT{builtin}="path_id"
+-ENV{DEVTYPE}=="disk", ENV{ID_PATH}=="?*", SYMLINK+="disk/by-path/$env{ID_PATH}"
++KERNEL=="mmcblk[0-9]boot[0-9]", ENV{DEVTYPE}=="disk", ENV{ID_PATH}=="?*", SYMLINK+="disk/by-path/$env{ID_PATH}-boot%n"
++KERNEL!="mmcblk[0-9]boot[0-9]", ENV{DEVTYPE}=="disk", ENV{ID_PATH}=="?*", SYMLINK+="disk/by-path/$env{ID_PATH}"
+ ENV{DEVTYPE}=="partition", ENV{ID_PATH}=="?*", SYMLINK+="disk/by-path/$env{ID_PATH}-part%n"
+ 
++# legacy virtio-pci by-path links (deprecated)
++KERNEL=="vd*[!0-9]", ENV{ID_PATH}=="pci-*", SYMLINK+="disk/by-path/virtio-$env{ID_PATH}"
++KERNEL=="vd*[0-9]", ENV{ID_PATH}=="pci-*", SYMLINK+="disk/by-path/virtio-$env{ID_PATH}-part%n"
++
+ # probe filesystem metadata of optical drives which have a media inserted
+ KERNEL=="sr*", ENV{DISK_EJECT_REQUEST}!="?*", ENV{ID_CDROM_MEDIA_TRACK_COUNT_DATA}=="?*", ENV{ID_CDROM_MEDIA_SESSION_LAST_OFFSET}=="?*", \
+   IMPORT{builtin}="blkid --offset=$env{ID_CDROM_MEDIA_SESSION_LAST_OFFSET}"
+@@ -81,7 +94,4 @@ ENV{DEVTYPE}=="partition", ENV{ID_WWN_WI
+ ENV{ID_PART_ENTRY_UUID}=="?*", SYMLINK+="disk/by-partuuid/$env{ID_PART_ENTRY_UUID}"
+ ENV{ID_PART_ENTRY_SCHEME}=="gpt", ENV{ID_PART_ENTRY_NAME}=="?*", SYMLINK+="disk/by-partlabel/$env{ID_PART_ENTRY_NAME}"
+ 
+-# add symlink to GPT root disk
+-ENV{ID_PART_ENTRY_SCHEME}=="gpt", ENV{ID_PART_GPT_AUTO_ROOT}=="1", SYMLINK+="gpt-auto-root"
+-
+ LABEL="persistent_storage_end"
+--- /dev/null
++++ eudev-3.2/rules/60-sensor.rules
+@@ -0,0 +1,18 @@
++# do not edit this file, it will be overwritten on update
++
++ACTION=="remove", GOTO="sensor_end"
++
++# device matching the sensor's name and the machine's DMI data for IIO devices
++SUBSYSTEM=="iio", KERNEL=="iio*", SUBSYSTEMS=="usb|i2c", \
++  IMPORT{builtin}="hwdb 'sensor:modalias:$attr{modalias}:$attr{[dmi/id]modalias}'", \
++  GOTO="sensor_end"
++
++SUBSYSTEM=="input", ENV{ID_INPUT_ACCELEROMETER}=="1", SUBSYSTEMS=="acpi", \
++  IMPORT{builtin}="hwdb 'sensor:modalias:acpi:$attr{hid}:$attr{[dmi/id]modalias}'", \
++  GOTO="sensor_end"
++
++SUBSYSTEM=="input", ENV{ID_INPUT_ACCELEROMETER}=="1", SUBSYSTEMS=="platform", \
++  IMPORT{builtin}="hwdb 'sensor:modalias:platform:$id:$attr{[dmi/id]modalias}'", \
++  GOTO="sensor_end"
++
++LABEL="sensor_end"
+--- /dev/null
++++ eudev-3.2/rules/70-touchpad.rules
+@@ -0,0 +1,13 @@
++# do not edit this file, it will be overwritten on update
++
++ACTION=="remove", GOTO="touchpad_end"
++ENV{ID_INPUT}=="", GOTO="touchpad_end"
++ENV{ID_INPUT_TOUCHPAD}=="", GOTO="touchpad_end"
++KERNEL!="event*", GOTO="touchpad_end"
++
++# touchpad:<subsystem>:v<vid>p<pid>:name:<name>:*
++KERNELS=="input*", ENV{ID_BUS}!="", \
++        IMPORT{builtin}="hwdb 'touchpad:$env{ID_BUS}:v$attr{id/vendor}p$attr{id/product}:name:$attr{name}:'", \
++        GOTO="touchpad_end"
++
++LABEL="touchpad_end"
+--- eudev-3.2.orig/rules/78-sound-card.rules
++++ eudev-3.2/rules/78-sound-card.rules
+@@ -48,6 +48,13 @@ SUBSYSTEMS=="firewire", ATTRS{guid}=="?*
+ SUBSYSTEMS=="firewire", GOTO="skip_pci"
+ 
+ SUBSYSTEMS=="pci", ENV{ID_BUS}="pci", ENV{ID_VENDOR_ID}="$attr{vendor}", ENV{ID_MODEL_ID}="$attr{device}"
++SUBSYSTEMS=="pci", GOTO="skip_pci"
++
++# If we reach here, the device nor any of its parents are USB/PCI/firewire bus devices.
++# If we now find a parent that is a platform device, assume that we're working with
++# an internal sound card.
++SUBSYSTEMS=="platform", ENV{SOUND_FORM_FACTOR}="internal", GOTO="sound_end"
++
+ LABEL="skip_pci"
+ 
+ # Define ID_ID if ID_BUS and ID_SERIAL are set. This will work for both
+--- eudev-3.2.orig/rules/80-drivers.rules
++++ eudev-3.2/rules/80-drivers.rules
+@@ -9,6 +9,5 @@ SUBSYSTEM=="memstick", RUN{builtin}+="km
+ SUBSYSTEM=="i2o", RUN{builtin}+="kmod load i2o_block"
+ SUBSYSTEM=="module", KERNEL=="parport_pc", RUN{builtin}+="kmod load ppdev"
+ KERNEL=="mtd*ro", ENV{MTD_FTL}=="smartmedia", RUN{builtin}+="kmod load sm_ftl"
+-SUBSYSTEM=="scsi", ENV{DEVTYPE}=="scsi_device", TEST!="[module/sg]", RUN{builtin}+="kmod load sg"
+ 
+ LABEL="drivers_end"
