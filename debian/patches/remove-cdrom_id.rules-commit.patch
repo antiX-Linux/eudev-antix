@@ -1,17 +1,24 @@
+From: Anto <aryanto@chello.at>
+Date: Tue, 30 May 2017 22:56:19 +0200
+Subject: remove-cdrom_id.rules-commit
+
 Notes - Added for eudev-3.0 - Anto
 Remove commit https://github.com/gentoo/eudev/commit/681b0e3876ba6ed10efbc139c0d4346446500e07
+---
+ rules/60-cdrom_id.rules | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
 diff --git a/rules/60-cdrom_id.rules b/rules/60-cdrom_id.rules
-index 5c3b52e..6eaf76a 100644
+index 5c3b52e..61ab013 100644
 --- a/rules/60-cdrom_id.rules
 +++ b/rules/60-cdrom_id.rules
 @@ -9,17 +9,12 @@ ENV{DEVTYPE}!="disk", GOTO="cdrom_end"
  KERNEL=="sr[0-9]*", ENV{ID_CDROM}="1"
-
+ 
  # media eject button pressed
 -ENV{DISK_EJECT_REQUEST}=="?*", RUN+="cdrom_id --eject-media $devnode", GOTO="cdrom_end"
 +ENV{DISK_EJECT_REQUEST}=="?*", RUN+="/usr/bin/eject $devnode", GOTO="cdrom_end"
-
+ 
  # import device and media properties and lock tray to
  # enable the receiving of media eject button events
  IMPORT{program}="cdrom_id --lock-media $devnode"

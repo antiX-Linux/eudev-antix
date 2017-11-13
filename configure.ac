@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT([eudev],[3.2],[https://github.com/gentoo/eudev/issues])
+AC_INIT([eudev],[3.2.4],[https://github.com/gentoo/eudev/issues])
 AC_SUBST(UDEV_VERSION, 220)
 AC_CONFIG_SRCDIR([src/udev/udevd.c])
 
@@ -197,6 +197,12 @@ GOBJECT_INTROSPECTION_CHECK([1.31.1])
 AM_CONDITIONAL([HAVE_INTROSPECTION], [test "$enable_introspection" = "yes"])
 
 # ------------------------------------------------------------------------------
+AC_ARG_ENABLE([programs],
+        AS_HELP_STRING([--disable-programs], [disable programs (udevd, udevadm and helpers)]),
+        [], [enable_programs="yes"])
+AM_CONDITIONAL([ENABLE_PROGRAMS], [test "x$enable_programs" = "xyes"])
+
+# ------------------------------------------------------------------------------
 have_blkid=no
 AC_ARG_ENABLE(blkid, AS_HELP_STRING([--disable-blkid], [Disable optional blkid support]))
 if test "x$enable_blkid" != "xno"; then
@@ -282,6 +288,14 @@ if test "x${enable_rule_generator}" != xno; then
 fi
 
 AM_CONDITIONAL([ENABLE_RULE_GENERATOR], [test "x$enable_rule_generator" = xyes])
+
+# ------------------------------------------------------------------------------
+# mtd_probe - autoloads FTL module for mtd devices
+# ------------------------------------------------------------------------------
+AC_ARG_ENABLE([mtd_probe],
+	AS_HELP_STRING([--disable-mtd_probe], [disable MTD support]),
+	[], [enable_mtd_probe=yes])
+AM_CONDITIONAL([ENABLE_MTD_PROBE], [test "x$enable_mtd_probe" = xyes])
 
 # ------------------------------------------------------------------------------
 

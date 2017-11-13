@@ -7,7 +7,10 @@ Files: debian/*
 Copyright: 2010-2013 Tollef Fog Heen <tfheen@debian.org>
            2013 Michael Biebl <biebl@debian.org>
            2013 Michael Stapelberg <stapelberg@debian.org>
-           2015 Jaret Jay Cantu <jaret@realitysend.com>
+           2015-2016 Jaret Jay Cantu <jaret@realitysend.com>
+           2016-2016 Anto <aryanto@chello.at>
+           2017 Ivan J. <parazyd@dyne.org>
+           2017 Svante Signell <svante.signell@gmail.com>
 License: LGPL-2.1+
 
 Files: *

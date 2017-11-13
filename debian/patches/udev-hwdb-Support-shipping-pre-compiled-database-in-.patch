@@ -1,5 +1,3 @@
-Patch mostly based on (Removed reference to removed file):
-
 From: Martin Pitt <martin.pitt@ubuntu.com>
 Date: Fri, 17 Oct 2014 15:01:01 +0200
 Subject: udev hwdb: Support shipping pre-compiled database in system images
@@ -17,22 +15,20 @@ into UDEVLIBEXECDIR.
 
 Adjust systemd-udev-hwdb-update.service to not generate the file in /etc if we
 already have it in /usr.
+Anto:
 ---
  man/udev.xml               |  4 +++-
  man/udevadm.xml            |  9 +++++++++
- src/libudev/libudev-hwdb.c | 42 ++++++++++++++++++++++++++++++++++++------
  src/libudev/Makefile.am    |  1 +
+ src/libudev/libudev-hwdb.c | 42 ++++++++++++++++++++++++++++++++++++------
  src/udev/udevadm-hwdb.c    | 13 ++++++++++++-
  5 files changed, 61 insertions(+), 8 deletions(-)
 
-
-Notes: Edited for eudev-3.0 - Anto
-
 diff --git a/man/udev.xml b/man/udev.xml
-index e40af40..7befa97 100644
+index d1ade24..fd62adc 100644
 --- a/man/udev.xml
 +++ b/man/udev.xml
-@@ -770,7 +770,9 @@
+@@ -763,7 +763,9 @@
  
        <para>The content of all hwdb files is read by
        <citerefentry><refentrytitle>udevadm</refentrytitle><manvolnum>8</manvolnum></citerefentry>
@@ -44,7 +40,7 @@ index e40af40..7befa97 100644
    </refsect1>
  
 diff --git a/man/udevadm.xml b/man/udevadm.xml
-index 1b349c6..6e2c4b4 100644
+index 649d808..efd0111 100644
 --- a/man/udevadm.xml
 +++ b/man/udevadm.xml
 @@ -529,6 +529,15 @@
@@ -63,8 +59,20 @@ index 1b349c6..6e2c4b4 100644
            <term><option>-t</option></term>
            <term><option>--test=<replaceable>string</replaceable></option></term>
            <listitem>
+diff --git a/src/libudev/Makefile.am b/src/libudev/Makefile.am
+index 0edb873..dd88445 100644
+--- a/src/libudev/Makefile.am
++++ b/src/libudev/Makefile.am
+@@ -20,6 +20,7 @@ AM_CPPFLAGS = \
+ 	-DUDEV_CONF_FILE=\"$(udevconffile)\" \
+ 	-DUDEV_HWDB_BIN=\"$(udevhwdbbin)\" \
+ 	-DUDEV_VERSION=$(UDEV_VERSION) \
++	-DUDEV_LIBEXEC_DIR=\"$(udevlibexecdir)\" \
+ 	-I $(top_srcdir)/src/shared
+ 
+ lib_LTLIBRARIES = \
 diff --git a/src/libudev/libudev-hwdb.c b/src/libudev/libudev-hwdb.c
-index 7af230c..0a1365e 100644
+index 951205c..7691045 100644
 --- a/src/libudev/libudev-hwdb.c
 +++ b/src/libudev/libudev-hwdb.c
 @@ -256,6 +256,11 @@ static int trie_search_f(struct udev_hwdb *hwdb, const char *search) {
@@ -136,7 +144,7 @@ index 7af230c..0a1365e 100644
                  udev_hwdb_unref(hwdb);
                  return NULL;
          }
-@@ -352,15 +371,26 @@ _public_ struct udev_hwdb *udev_hwdb_unref(struct udev_hwdb *hwdb) {
+@@ -352,13 +371,24 @@ _public_ struct udev_hwdb *udev_hwdb_unref(struct udev_hwdb *hwdb) {
  }
  
  bool udev_hwdb_validate(struct udev_hwdb *hwdb) {
@@ -160,12 +168,10 @@ index 7af230c..0a1365e 100644
 +
 +        if (!found)
                  return true;
-
+ 
          if (timespec_load(&hwdb->st.st_mtim) != timespec_load(&st.st_mtim))
-                 return true;
-         return false;
 diff --git a/src/udev/udevadm-hwdb.c b/src/udev/udevadm-hwdb.c
-index de535de..d677391 100644
+index 9df0438..1455988 100644
 --- a/src/udev/udevadm-hwdb.c
 +++ b/src/udev/udevadm-hwdb.c
 @@ -547,14 +547,20 @@ static int import_file(struct udev *udev, struct trie *trie, const char *filenam
@@ -189,7 +195,7 @@ index de535de..d677391 100644
                  { "test",   required_argument, NULL, 't' },
                  { "root",   required_argument, NULL, 'r' },
                  { "help",   no_argument,       NULL, 'h' },
-@@ -562,6 +562,7 @@ static int adm_hwdb(struct udev *udev, int argc, char *argv[]) {
+@@ -562,6 +568,7 @@ static int adm_hwdb(struct udev *udev, int argc, char *argv[]) {
          };
          const char *test = NULL;
          const char *root = "";
@@ -197,7 +203,7 @@ index de535de..d677391 100644
          bool update = false;
          struct trie *trie = NULL;
          int err, c;
-@@ -572,6 +572,9 @@ static int adm_hwdb(struct udev *udev, int argc, char *argv[]) {
+@@ -572,6 +579,9 @@ static int adm_hwdb(struct udev *udev, int argc, char *argv[]) {
                  case 'u':
                          update = true;
                          break;
@@ -207,7 +213,7 @@ index de535de..d677391 100644
                  case 't':
                          test = optarg;
                          break;
-@@ -645,7 +645,8 @@ static int adm_hwdb(struct udev *udev, int argc, char *argv[]) {
+@@ -645,7 +655,8 @@ static int adm_hwdb(struct udev *udev, int argc, char *argv[]) {
                  log_debug("strings dedup'ed: %8zu bytes (%8zu)",
                            trie->strings->dedup_len, trie->strings->dedup_count);
  
@@ -217,15 +223,3 @@ index de535de..d677391 100644
                          rc = EXIT_FAILURE;
                          goto out;
                  }
-diff --git a/src/libudev/Makefile.am b/src/libudev/Makefile.am
-index 35f5be2..0fb53e0 100644
---- a/src/libudev/Makefile.am
-+++ b/src/libudev/Makefile.am
-@@ -20,6 +20,7 @@ AM_CPPFLAGS = \
- 	-DUDEV_CONF_FILE=\"$(udevconffile)\" \
- 	-DUDEV_HWDB_BIN=\"$(udevhwdbbin)\" \
- 	-DUDEV_VERSION=$(UDEV_VERSION) \
-+	-DUDEV_LIBEXEC_DIR=\"$(udevlibexecdir)\" \
- 	-I $(top_srcdir)/src/shared
- 
- lib_LTLIBRARIES = \

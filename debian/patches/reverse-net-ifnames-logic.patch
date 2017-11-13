@@ -1,0 +1,25 @@
+From: Ivan J. <parazyd@dyne.org>
+Date: Sun, 20 Aug 2017 14:50:00 +0200
+Subject: Reverse net-ifnames logic
+
+Reverse the logic of 80-net-name-slot.rules to give back the consistent
+eth0, wlan0 naming rather than the new enp0s3, wl... naming, making it
+opt-in.
+---
+ rules/80-net-name-slot.rules | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rules/80-net-name-slot.rules b/rules/80-net-name-slot.rules
+index c5f1b3885..4738e533f 100644
+--- a/rules/80-net-name-slot.rules
++++ b/rules/80-net-name-slot.rules
+@@ -5,7 +5,7 @@ SUBSYSTEM!="net", GOTO="net_name_slot_end"
+ NAME!="", GOTO="net_name_slot_end"
+
+ IMPORT{cmdline}="net.ifnames"
+-ENV{net.ifnames}=="0", GOTO="net_name_slot_end"
++ENV{net.ifnames}!="1", GOTO="net_name_slot_end"
+
+ NAME=="", ENV{ID_NET_NAME_ONBOARD}!="", NAME="$env{ID_NET_NAME_ONBOARD}"
+ NAME=="", ENV{ID_NET_NAME_SLOT}!="", NAME="$env{ID_NET_NAME_SLOT}"
+

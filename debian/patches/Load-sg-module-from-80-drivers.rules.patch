@@ -1,5 +1,3 @@
-This patch is based on the following (adds in eudev-only rule):
-
 From: Martin Pitt <martin.pitt@ubuntu.com>
 Date: Sat, 26 Apr 2014 14:16:06 +0200
 Subject: Load sg module from 80-drivers.rules
@@ -8,6 +6,8 @@ Taken from the Debian specific rules, this is the remaining difference over the
 upstream 80-drivers.rules.
 
 Bug-Debian: http://bugs.debian.org/657948
+
+Anto:This patch is based on the following (adds in eudev-only rule):
 ---
  rules/80-drivers.rules | 1 +
  1 file changed, 1 insertion(+)

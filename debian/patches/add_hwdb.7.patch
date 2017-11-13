@@ -1,0 +1,134 @@
+From: Svante Signell <svante.signell@gmail.com>
+Date: Tue, 30 May 2017 10:26:51 +0200
+Subject: Add support for generation of hwdb(7) in man/* from hwdb.xml
+
+---
+ man/Makefile.am |  2 ++
+ man/hwdb.xml    | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ man/make.sh     |  1 +
+ 3 files changed, 88 insertions(+)
+ create mode 100644 man/hwdb.xml
+
+diff --git a/man/Makefile.am b/man/Makefile.am
+index 4d7b45f..cfeeb47 100644
+--- a/man/Makefile.am
++++ b/man/Makefile.am
+@@ -1,6 +1,7 @@
+ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+ 
+ XMLPAGES = \
++	hwdb.xml \
+ 	udev.xml \
+ 	udev.conf.xml \
+ 	udevd.xml \
+@@ -13,6 +14,7 @@ EXTRA_DIST = \
+ 	$(XMLPAGES)
+ 
+ MANPAGES = \
++	hwdb.7 \
+ 	udev.7 \
+ 	udev.conf.5 \
+ 	udevd.8 \
+diff --git a/man/hwdb.xml b/man/hwdb.xml
+new file mode 100644
+index 0000000..2b1e60f
+--- /dev/null
++++ b/man/hwdb.xml
+@@ -0,0 +1,85 @@
++<?xml version='1.0'?> <!--*- Mode: nxml; nxml-child-indent: 2; indent-tabs-mode: nil -*-->
++<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
++  "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
++
++<refentry id="hwdb" conditional="ENABLE_HWDB">
++  <refentryinfo>
++    <title>hwdb</title>
++    <productname>systemd</productname>
++    <authorgroup>
++      <author>
++        <contrib>Developer</contrib>
++        <firstname>Kay</firstname>
++        <surname>Sievers</surname>
++        <email>kay@vrfy.org</email>
++      </author>
++      <author>
++        <contrib>Developer</contrib>
++        <firstname>Tom</firstname>
++        <surname>Gundersen</surname>
++        <email>teg@jklm.no</email>
++      </author>
++    </authorgroup>
++  </refentryinfo>
++
++  <refmeta>
++    <refentrytitle>hwdb</refentrytitle>
++    <manvolnum>7</manvolnum>
++  </refmeta>
++
++  <refnamediv>
++    <refname>hwdb</refname>
++    <refpurpose>Hardware Database</refpurpose>
++  </refnamediv>
++
++  <refsect1><title>Description</title>
++    <para>The hardware database is a key-value store for associating modalias-like keys to
++    udev-property-like values. It is used primarily by udev to add the relevant properties
++    to matching devices, but it can also be queried directly.</para>
++  </refsect1>
++
++  <refsect1><title>Hardware Database Files</title>
++      <para>The hwdb files are read from the files located in the
++      system hwdb directory <filename>/usr/lib/udev/hwdb.d</filename> and
++      the local administration directory <filename>/etc/udev/hwdb.d</filename>.
++      All hwdb files are collectively sorted and processed in lexical order,
++      regardless of the directories in which they live. However, files with
++      identical filenames replace each other. Files in <filename>/etc</filename>
++      have the highest priority and take precedence over files with the same
++      name in <filename>/usr/lib</filename>. This can be used to override a
++      system-supplied hwdb file with a local file if needed;
++      a symlink in <filename>/etc</filename> with the same name as a hwdb file in
++      <filename>/usr/lib</filename>, pointing to <filename>/dev/null</filename>,
++      disables the hwdb file entirely. hwdb files must have the extension
++      <filename>.hwdb</filename>; other extensions are ignored.</para>
++
++      <para>The hwdb file contains data records consisting of matches and
++      associated key-value pairs. Every record in the hwdb starts with one or
++      more match strings, specifying a shell glob to compare the database
++      lookup string against. Multiple match lines are specified in additional
++      consecutive lines. Every match line is compared individually, and they are
++      combined by OR. Every match line must start at the first character of
++      the line.</para>
++
++      <para>The match lines are followed by one or more key-value pair lines, which
++      are recognized by a leading space character. The key name and value are separated
++      by <literal>=</literal>. An empty line signifies the end
++      of a record. Lines beginning with <literal>#</literal> are ignored.</para>
++
++      <para>The content of all hwdb files is read by
++      <citerefentry><refentrytitle>systemd-hwdb</refentrytitle><manvolnum>8</manvolnum></citerefentry>
++      and compiled to a binary database located at <filename>/etc/udev/hwdb.bin</filename>,
++      or alternatively <filename>/usr/lib/udev/hwdb.bin</filename> if you want ship the compiled
++      database in an immutable image.
++      During runtime, only the binary database is used.</para>
++  </refsect1>
++
++  <refsect1>
++    <title>See Also</title>
++    <para>
++      <citerefentry>
++        <refentrytitle>systemd-hwdb</refentrytitle><manvolnum>8</manvolnum>
++      </citerefentry>
++    </para>
++  </refsect1>
++</refentry>
+diff --git a/man/make.sh b/man/make.sh
+index ca98f60..bb4363a 100755
+--- a/man/make.sh
++++ b/man/make.sh
+@@ -15,6 +15,7 @@ xslt_proc() {
+ }
+ 
+ xslt_proc udev 7
++xslt_proc hwdb 7
+ xslt_proc udev.conf 5
+ xslt_proc udevd 8
+ xslt_proc udevadm 8

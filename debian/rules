@@ -2,6 +2,7 @@
 
 #export DH_VERBOSE=1
 #export DEB_BUILD_OPTIONS="nostrip"
+#export DEB_BUILD_PROFILES="noudeb"
 
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
@@ -28,18 +29,28 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	dh_auto_build --builddirectory=build-deb
+ifeq (, $(filter noudeb, $(DEB_BUILD_PROFILES)))
 	dh_auto_build --builddirectory=build-udeb
+endif
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=build-deb \
 		--destdir=debian/install/deb
+ifeq (, $(filter noudeb, $(DEB_BUILD_PROFILES)))
 	dh_auto_install --builddirectory=build-udeb \
 		--destdir=debian/install/udeb
+endif
 
 override_dh_auto_clean:
 	dh_auto_clean --builddirectory=build-deb
 	dh_auto_clean --builddirectory=build-udeb
 	rm -rf debian/install/
+	-rm depcomp install-sh ltmain.sh missing compile config.guess config.sub test-driver
+	-rm m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 m4/lt~obsolete.m4
+	-rm man/*.5 man/*.7 man/*.8
+	-rm Makefile.in */Makefile.in */*/Makefile.in
+	-rm aclocal.m4 config.h.in configure
+	-rm -r .pc
 
 override_dh_install:
 	# remove unnecessary / unused files
@@ -53,67 +64,24 @@ override_dh_install:
 	rm -rf debian/install/*/usr/lib/rpm/
 	rm -rf debian/install/*/etc/kernel/
 	find debian/install/ -name '*.la' -delete
-	dh_install -pudev-udeb -plibudev1-udeb --sourcedir=debian/install/udeb
-	dh_install $(BOOTSTRAP_DH_FLAGS) -Nudev-udeb -Nlibudev1-udeb --sourcedir=debian/install/deb --fail-missing
-	# install some files manually, --sourcedir makes that necessary
-	# udev-udeb
-	install -D --mode=755 debian/extra/udev.startup \
-		debian/udev-udeb/lib/debian-installer/start-udev
-	install -D --mode=755 debian/extra/udev.base-installer \
-		debian/udev-udeb/usr/lib/base-installer.d/05udev
-	mkdir -p debian/udev-udeb/lib/udev/rules.d/
-	install -D --mode=644 \
-		debian/extra/rules/73-idrac.rules \
-		debian/extra/rules/75-persistent-net-generator.rules \
-		debian/udev-udeb/lib/udev/rules.d/
-	mkdir -p debian/udev-udeb/lib/udev
-	install -D --mode=644 \
-		debian/extra/hotplug.functions \
-		debian/extra/rule_generator.functions \
-		debian/udev-udeb/lib/udev/
-	install -D --mode=755 \
-		debian/extra/write_net_rules \
-		debian/udev-udeb/lib/udev/
-	# udev: initramfs-tools support
-	install -D --mode=755 debian/extra/initramfs.hook \
-		debian/udev/usr/share/initramfs-tools/hooks/udev
-	install -D --mode=755 debian/extra/initramfs.top \
-		debian/udev/usr/share/initramfs-tools/scripts/init-top/udev
-	install -D --mode=755 debian/extra/initramfs.bottom \
-		debian/udev/usr/share/initramfs-tools/scripts/init-bottom/udev
-	# udev: debian specific rules and helpers
-	install -D --mode=644 debian/extra/rules/* \
-		debian/udev/lib/udev/rules.d/
-	install -D --mode=644 debian/extra/fbdev-blacklist.conf \
-		debian/udev/etc/modprobe.d/fbdev-blacklist.conf
-	install -D --mode=644 \
-		debian/extra/hotplug.functions \
-		debian/extra/rule_generator.functions \
-		debian/udev/lib/udev/
-	install -D --mode=755 \
-		debian/extra/dsl-modem.agent \
-		debian/extra/logger.agent \
-		debian/extra/net.agent \
-		debian/extra/udev-finish \
-		debian/extra/write_net_rules \
-		debian/udev/lib/udev/
+ifeq (, $(filter noudeb, $(DEB_BUILD_PROFILES)))
+	dh_install -peudev-udeb -plibeudev1-udeb --sourcedir=debian/install/udeb --list-missing
+endif
+	dh_install -Neudev-udeb -Nlibeudev1-udeb --sourcedir=debian/install/deb --list-missing
+	mkdir -p debian/eudev/etc/udev/rules.d
+	mkdir -p debian/eudev/etc/udev/hwdb.d
 
-# use symlinked doc directories as the old udev package did
 override_dh_installdocs:
-	dh_installdocs -pudev -plibudev-dev --link-doc=libudev1
-	# we have to manually install udev's README for the above
-	install -D --mode 644 debian/udev.README.Debian debian/libudev1/usr/share/doc/libudev1/README.Debian
+#FIXME: see systemd-232/debian/changelog
+	# use symlinked doc directories as the old udev package did
+#	dh_installdocs -peudev -plibeudev-dev --link-doc=libeudev1
 	dh_installdocs --remaining-packages
 
 override_dh_installinit:
 	dh_installinit --no-start
-	dh_installinit --name=udev-finish --no-start
-	dh_installinit --name=udevtrigger --no-start
-	dh_installinit --name=udevmonitor --no-start
-	dh_installinit --name=udev-fallback-graphics --no-start
 
 override_dh_makeshlibs:
-	dh_makeshlibs -plibudev1 --add-udeb=libudev1-udeb
+	dh_makeshlibs -plibeudev1 --add-udeb=libeudev1-udeb
 	dh_makeshlibs --remaining-packages
 
 autoreconf:
@@ -122,23 +90,14 @@ autoreconf:
 override_dh_autoreconf:
 	dh_autoreconf debian/rules -- autoreconf
 
-override_dh_strip:
-	dh_strip --dbg-package=eudev-dbg
-
 override_dh_auto_test:
 ifeq (, $(findstring nocheck, $(DEB_BUILD_OPTIONS)))
 	# some tests hang under fakeroot, so disable fakeroot
-	echo "01234567890123456789012345678901" > build-deb/machine-id
-	env -u LD_PRELOAD SYSTEMD_MACHINE_ID_PATH=$(CURDIR)/build-deb/machine-id \
-		make -C build-deb check || ( \
-		cd build-deb; \
-		for f in test-*.log; do echo "==== $$f ===="; cat $$f; done; \
-		exit 0; )  # replace with 1 to make failures fatal
+	make -C build-deb check || ( \
+	cd build-deb; \
+	for f in test-*.log; do echo "==== $$f ===="; cat $$f; done; \
+	exit 0; )  # replace with 1 to make failures fatal
 endif
 
 %:
-ifeq (,$(findstring stage1,$(DEB_BUILD_PROFILES)))
-	dh $@ --with autoreconf,gir,python3 --parallel
-else
-	dh $@ --with autoreconf,python3 $(BOOTSTRAP_DH_FLAGS)
-endif
+	dh $@ --with autoreconf

@@ -1,19 +1,11 @@
-## Cherry-picked patches:
 udev-hwdb-Support-shipping-pre-compiled-database-in-.patch
-
-## Debian specific patches:
 Add-note-to-udev.conf-that-changes-to-that-file-requ.patch
 Load-sg-module-from-80-drivers.rules.patch
 Updates-to-default-device-permissions.patch
 Set-default-polling-interval-on-removable-devices-as.patch
 remove-cdrom_id.rules-commit.patch
 more-cd-aliases.patch
-
-## local specific patches
+add_hwdb.7.patch
 Always-install-non-arch-specific-files-in-lib-udev.patch
-hwdb_2017
-rules_antix
-src
-src2
-src3
-src4
+#0010-Commit-refreshed-patches-in-debian-patches.patch
+reverse-net-ifnames-logic.patch
