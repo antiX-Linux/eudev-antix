@@ -52,21 +52,14 @@ Copyright: 2008-2013 Kay Sievers <kay@vrfy.org>
            2014 Matthew Thode <prometheanfire@gentoo.org>
            2014 Tony Vroon <tony@linx.net>
            2014 Richard Yao <ryao@gentoo.org>
-
-
 License: LGPL-2.1+
 
-Files: src/shared/MurmurHash3.h
-       src/shared/MurmurHash3.c
+Files: src/shared/MurmurHash2.h
+       src/shared/MurmurHash2.c
 Copyright: 2008 Austin Appleby
 License: public-domain
- MurmurHash3 was written by Austin Appleby, and is placed in the public
+ MurmurHash2 was written by Austin Appleby, and is placed in the public
  domain. The author hereby disclaims copyright to this source code.
-
-Files: src/core/selinux-access.h
-       src/core/selinux-access.c
-Copyright: 2012 Dan Walsh
-License: GPL-2+
 
 Files: src/core/securebits.h
 Copyright: Linus Torvalds <torvalds@athlon.transmeta.com>
@@ -74,17 +67,6 @@ License: GPL-2
 
 Files: src/shared/ioprio.h
 Copyright: Jens Axboe <axboe@suse.de>
-License: GPL-2
-
-Files: src/shared/linux/auto_dev-ioctl.h
-Copyright: 2008 Red Hat, Inc.
-           2008 Ian Kent <raven@themaw.net>
-License: GPL-2+
-
-Files: src/shared/linux/seccomp-bpf.h
-Copyright: 2012 The Chromium OS Authors <chromium-os-dev@chromium.org>
-           2012 Will Drewry <wad@chromium.org>
-           2012 Kees Cook <keescook@chromium.org>
 License: GPL-2
 
 Files: src/shared/sparse-endian.h
@@ -97,20 +79,10 @@ Copyright: 2010 Canonical Ltd.
            2010 Martin Pitt <martin.pitt@ubuntu.com>
 License: GPL-2+
 
-Files: src/shared/linux/fanotify.h
-Copyright: 2009 Eric Paris <eparis@redhat.com>
-License: GPL-2
-
-Files: src/journal/lookup3.c
-       src/journal/lookup3.h
-Copyright: 2006 Bob Jenkins
-License: public-domain
- You can use this free for any purpose. It's in the public domain. It has no
- warranty.
-
 Files: src/udev/*
 Copyright: 2004-2012 Kay Sievers <kay@vrfy.org>
            2003-2004 Greg Kroah-Hartman <greg@kroah.com>
+           2003 IBM Corp.
            2004 Chris Friesen <chris_friesen@sympatico.ca>
            2004 David Zeuthen <david@fubar.dk>
            2005 SUSE Linux Products GmbH, Germany
@@ -132,17 +104,6 @@ Files: src/udev/udev-ctrl.c
        src/udev/udev-builtin-btrfs.c
 Copyright: 2007-2012 Kay Sievers <kay@vrfy.org>
 License: LGPL-2.1+
-
-Files: src/udev/scsi_id/scsi.h
-Copyright: 2003 IBM Corp.
-License: GPL-2
-
-Files: src/systemd/sd-daemon.h
-       src/systemd/sd-readahead.h
-       src/libsystemd-daemon/sd-daemon.c
-       src/readahead/sd-readahead.c
-Copyright: 2010 Lennart Poettering
-License: Expat
 
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy

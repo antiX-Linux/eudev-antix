@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT([eudev],[3.2.4],[https://github.com/gentoo/eudev/issues])
+AC_INIT([eudev],[3.2.5],[https://github.com/gentoo/eudev/issues])
 AC_SUBST(UDEV_VERSION, 220)
 AC_CONFIG_SRCDIR([src/udev/udevd.c])
 
@@ -208,7 +208,7 @@ AC_ARG_ENABLE(blkid, AS_HELP_STRING([--disable-blkid], [Disable optional blkid s
 if test "x$enable_blkid" != "xno"; then
         PKG_CHECK_MODULES([BLKID], [blkid >= 2.20],
                 [AC_DEFINE(HAVE_BLKID, 1, [Define if blkid is available]) have_blkid=yes], have_blkid=no)
-        if test "x$have_blkid" = xno -a "x$enable_blkd" = xyes; then
+        if test "x$have_blkid" = xno -a "x$enable_blkid" = xyes; then
                 AC_MSG_ERROR([*** blkid support requested but not found])
         fi
 fi

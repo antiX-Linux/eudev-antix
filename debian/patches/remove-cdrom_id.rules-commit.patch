@@ -8,12 +8,10 @@ Remove commit https://github.com/gentoo/eudev/commit/681b0e3876ba6ed10efbc139c0d
  rules/60-cdrom_id.rules | 7 +------
  1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/rules/60-cdrom_id.rules b/rules/60-cdrom_id.rules
-index 5c3b52e..61ab013 100644
 --- a/rules/60-cdrom_id.rules
 +++ b/rules/60-cdrom_id.rules
-@@ -9,17 +9,12 @@ ENV{DEVTYPE}!="disk", GOTO="cdrom_end"
- KERNEL=="sr[0-9]*", ENV{ID_CDROM}="1"
+@@ -13,17 +13,12 @@
+ ENV{ID_CDROM}=="1", ENV{SYSTEMD_MOUNT_DEVICE_BOUND}="1"
  
  # media eject button pressed
 -ENV{DISK_EJECT_REQUEST}=="?*", RUN+="cdrom_id --eject-media $devnode", GOTO="cdrom_end"

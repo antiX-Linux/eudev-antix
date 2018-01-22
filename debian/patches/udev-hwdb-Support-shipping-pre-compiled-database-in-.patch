@@ -17,28 +17,12 @@ Adjust systemd-udev-hwdb-update.service to not generate the file in /etc if we
 already have it in /usr.
 Anto:
 ---
- man/udev.xml               |  4 +++-
  man/udevadm.xml            |  9 +++++++++
  src/libudev/Makefile.am    |  1 +
  src/libudev/libudev-hwdb.c | 42 ++++++++++++++++++++++++++++++++++++------
  src/udev/udevadm-hwdb.c    | 13 ++++++++++++-
  5 files changed, 61 insertions(+), 8 deletions(-)
 
-diff --git a/man/udev.xml b/man/udev.xml
-index d1ade24..fd62adc 100644
---- a/man/udev.xml
-+++ b/man/udev.xml
-@@ -763,7 +763,9 @@
- 
-       <para>The content of all hwdb files is read by
-       <citerefentry><refentrytitle>udevadm</refentrytitle><manvolnum>8</manvolnum></citerefentry>
--      and compiled to a binary database located at <filename>/etc/udev/hwdb.bin</filename>.
-+      and compiled to a binary database located at <filename>/etc/udev/hwdb.bin</filename>,
-+      or alternatively <filename>/lib/udev/hwdb.bin</filename> if you want ship the compiled
-+      database in an immutable image.
-       During runtime only the binary database is used.</para>
-   </refsect1>
- 
 diff --git a/man/udevadm.xml b/man/udevadm.xml
 index 649d808..efd0111 100644
 --- a/man/udevadm.xml

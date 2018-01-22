@@ -1,0 +1,4 @@
+# Needed:
+libeudev1: package-name-doesnt-match-sonames libudev1
+# FIXME: Remove older versions 3.2.2-devuan2.Y
+libeudev1: latest-debian-changelog-entry-without-new-version

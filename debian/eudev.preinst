@@ -201,23 +201,6 @@ mv_conffile() {
   fi
 }
 
-mask_systemd_service() {
-  if [ -x '/bin/systemctl' -a -d '/run/systemd/system/' ]; then
-    ln -sf /dev/null /run/systemd/system/systemd-udevd.service
-    ln -sf /dev/null /run/systemd/system/udev.service
-    systemctl daemon-reload || true
-  fi
-}
-
-stop_on_upstart_upgrade() {
-  if which initctl >/dev/null && initctl version | grep -q upstart
-  then
-    # We have to stop udev before we can restart it under upstart in the
-    # postinst.
-    invoke-rc.d udev stop
-  fi
-}
-
 check_version() {
   # $2 is non-empty when installing from the "config-files" state
   [ "$2" ] || return 0
@@ -236,10 +219,6 @@ check_version() {
     rm_conffile /etc/modprobe.d/blacklist.conf
   fi # 175-1
 
-  if dpkg --compare-versions $2 lt 175-7.1; then
-    stop_on_upstart_upgrade
-  fi # 175-7.1
-
   if dpkg --compare-versions $2 lt 204-4; then
     # suppress errors when the new rules files contain options not supported by
     # the old daemon
@@ -256,7 +235,6 @@ case "$1" in
 
     upgrade|abort-upgrade)
     check_version "$@"
-    mask_systemd_service
     ;;
 
     *)

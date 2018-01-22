@@ -6,6 +6,7 @@ case "$1" in
   rmdir --ignore-fail-on-non-empty /etc/udev/rules.d/ 2> /dev/null || true
   rm -f /lib/udev/hwdb.bin
   rm -f /var/log/udev
+  db_purge
   ;;
 esac
 

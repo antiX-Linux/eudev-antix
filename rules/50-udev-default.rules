@@ -62,7 +62,7 @@ SUBSYSTEM=="block", KERNEL=="sr[0-9]*", GROUP="cdrom"
 SUBSYSTEM=="scsi_generic", SUBSYSTEMS=="scsi", ATTRS{type}=="4|5", GROUP="cdrom"
 KERNEL=="sch[0-9]*", GROUP="cdrom"
 KERNEL=="pktcdvd[0-9]*", GROUP="cdrom"
-KERNEL=="pktcdvd", GROUP="cdrom"
+KERNEL=="pktcdvd", GROUP="cdrom", MODE="0644"
 
 SUBSYSTEM=="scsi_generic|scsi_tape", SUBSYSTEMS=="scsi", ATTRS{type}=="1|8", GROUP="tape"
 SUBSYSTEM=="scsi_generic", SUBSYSTEMS=="scsi", ATTRS{type}=="0", GROUP="disk"

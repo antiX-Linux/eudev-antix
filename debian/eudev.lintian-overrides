@@ -1,0 +1,12 @@
+# Needed:
+eudev: systemd-no-service-for-init-rcS-script eudev
+# FIXME: Remove older versions 3.2.2-devuan2.Y
+eudev: latest-debian-changelog-entry-without-new-version
+
+# FIXED:
+#eudev: missing-debconf-dependency-for-preinst
+#eudev: postrm-does-not-purge-debconf
+#eudev: maintainer-script-calls-systemctl postinst:139
+#eudev: debian-news-entry-has-unknown-version 220-7
+#eudev: breaks-without-version systemd
+

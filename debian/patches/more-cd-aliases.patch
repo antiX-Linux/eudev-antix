@@ -7,11 +7,9 @@ Add more aliases for CD/DVD devices.
  rules/60-cdrom_id.rules | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/rules/60-cdrom_id.rules b/rules/60-cdrom_id.rules
-index 61ab013..2ad86e4 100644
 --- a/rules/60-cdrom_id.rules
 +++ b/rules/60-cdrom_id.rules
-@@ -15,6 +15,12 @@ ENV{DISK_EJECT_REQUEST}=="?*", RUN+="/usr/bin/eject $devnode", GOTO="cdrom_end"
+@@ -19,6 +19,12 @@
  # enable the receiving of media eject button events
  IMPORT{program}="cdrom_id --lock-media $devnode"
  

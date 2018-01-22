@@ -1,4 +1,10 @@
-systemd (220-7) unstable; urgency=medium
+eudev (3.2.2-8+devuan2) experimental; urgency=medium
+
+  eudev was forked as (215:1.9-1) from systemd (215-17) by Jaret Jay
+  Cantu <jaret@realitysend.com>  Thu, 14 May 2015.
+  Current Devuan version is (3.2.2-9+devuan2) Thu, 30 Nov 2017
+
+  This text is from: systemd (220-7).
 
   The mechanism for providing stable network interface names changed.
   Previously they were kept in /etc/udev/rules.d/70-persistent-net.rules
