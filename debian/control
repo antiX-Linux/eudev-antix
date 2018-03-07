@@ -35,9 +35,9 @@ Section: admin
 Priority: important
 Architecture: linux-any
 Multi-Arch: foreign
-Provides: udev (= 1:${source:Version})
-Conflicts: udev (<< 1:${source:Version}), hal
-Replaces: udev (>= 215),
+Provides: udev (= 232:${source:Version})
+Conflicts: udev (<< 232:${source:Version}), hal
+Replaces: udev (>= 232),
 	  bash-completion (<< 1:2.1)
 Pre-Depends: debconf, ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
@@ -62,9 +62,9 @@ Section: libs
 Priority: important
 Architecture: linux-any
 Multi-Arch: same
-Replaces: libudev1 (<< 1:${source:Version})
-Provides: libudev1 (= 1:${source:Version})
-Conflicts: libudev1 (<< 1:${source:Version})
+Replaces: libudev1 (<< 232:${source:Version})
+Provides: libudev1 (= 232:${source:Version})
+Conflicts: libudev1 (<< 232:${source:Version})
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
@@ -76,9 +76,9 @@ Section: libdevel
 Priority: optional
 Architecture: linux-any
 Multi-Arch: same
-Replaces: libudev-dev (<< 1:${source:Version})
-Provides: libudev-dev (= 1:${source:Version})
-Conflicts: libudev-dev (<< 1:${source:Version})
+Replaces: libudev-dev (<< 232:${source:Version})
+Provides: libudev-dev (= 232:${source:Version})
+Conflicts: libudev-dev (<< 232:${source:Version})
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},

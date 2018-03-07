@@ -79,6 +79,8 @@ override_dh_installdocs:
 
 override_dh_installinit:
 	dh_installinit --no-start
+	#mkdir -p debian/eudev/etc/init.d/
+	install -D --mode 755 debian/udev.init debian/eudev/etc/init.d/udev
 
 override_dh_makeshlibs:
 	dh_makeshlibs -plibeudev1 --add-udeb=libeudev1-udeb

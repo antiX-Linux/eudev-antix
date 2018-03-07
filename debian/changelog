@@ -1,6 +1,19 @@
-eudev (3.2.5) unstable; urgency=medium
+eudev (232:3.2.5.3) unstable; urgency=medium
 
-  * Build for antiX
+  * upstream changes
+  * hwdb and rules additions
+
+ -- anticapitalista <antix@operamail.com>  Tue, 06 Mar 2018 22:10:57 +0200
+
+eudev (232:3.2.5.2) unstable; urgency=medium
+
+  * remove /lib/udev/rules.d/92-console-font.rules
+
+ -- anticapitalista <antix@operamail.com>  Tue, 06 Feb 2018 13:42:48 +0200
+
+eudev (232:3.2.5.1) unstable; urgency=medium
+
+  * changes in debian control file for smooth upgrade
 
  -- anticapitalista <antix@operamail.com>  Wed, 17 Jan 2018 13:27:23 +0200
 

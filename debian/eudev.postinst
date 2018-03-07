@@ -156,6 +156,17 @@ case "$1" in
 "
 	fi
       fi
+    fi 
+    if mountpoint -q /live/aufs; then
+		echo "Keeping 92-console-font.rules on Live system"
+		else
+		if [ "$(stat -c %d/%i /)" != "$(stat -Lc %d/%i /proc/1/root 2>/dev/null)" ];
+  		then
+                echo "A chroot environment has been detected, keeping 92-console-font.rules."
+                else
+                echo "Removing 92-console-font.rules on installed system"
+                rm -f /lib/udev/rules.d/92-console-font.rules
+		fi
     fi
     update_initramfs
     ;;
